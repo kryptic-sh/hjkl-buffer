@@ -6,7 +6,7 @@ search.
 [![CI](https://github.com/kryptic-sh/hjkl/actions/workflows/ci.yml/badge.svg)](https://github.com/kryptic-sh/hjkl/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/hjkl-buffer.svg)](https://crates.io/crates/hjkl-buffer)
 [![docs.rs](https://img.shields.io/docsrs/hjkl-buffer)](https://docs.rs/hjkl-buffer)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Website](https://img.shields.io/badge/website-hjkl.kryptic.sh-7ee787)](https://hjkl.kryptic.sh)
 
 Core text storage layer for the hjkl workspace. Provides vim-shaped buffer
@@ -52,4 +52,4 @@ assert_eq!(buf.as_string(), "new content");
 
 ## License
 
-MIT. See [LICENSE](../../LICENSE).
+MIT. See [LICENSE](LICENSE).
