@@ -3,7 +3,7 @@
 Rope-backed text buffer with cursor, edits, motions, folds, viewport, and
 search.
 
-[![CI](https://github.com/kryptic-sh/hjkl/actions/workflows/ci.yml/badge.svg)](https://github.com/kryptic-sh/hjkl/actions/workflows/ci.yml)
+[![CI](https://github.com/kryptic-sh/hjkl-buffer/actions/workflows/ci.yml/badge.svg)](https://github.com/kryptic-sh/hjkl-buffer/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/hjkl-buffer.svg)](https://crates.io/crates/hjkl-buffer)
 [![docs.rs](https://img.shields.io/docsrs/hjkl-buffer)](https://docs.rs/hjkl-buffer)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -18,7 +18,7 @@ full git history.
 
 ## Status
 
-`0.2.0` — frozen public API; see [IMPLEMENTERS.md](IMPLEMENTERS.md) for the
+`0.3.0` — frozen public API; see [IMPLEMENTERS.md](IMPLEMENTERS.md) for the
 14-method sealed surface.
 
 ## Features
@@ -30,7 +30,7 @@ full git history.
 ## Usage
 
 ```toml
-hjkl-buffer = "0.2"
+hjkl-buffer = "0.3"
 ```
 
 ```rust
