@@ -2,17 +2,15 @@
 //!
 //! Patch C (0.0.30) relocated the 24 inherent vim motion helpers
 //! that lived here onto [`hjkl_engine::motions`] free functions
-//! over `&mut hjkl_buffer::Buffer`. Per [SPEC.md], "motions don't
-//! belong on `Buffer` — they're computed over the buffer, not
-//! delegated to it"; the relocation is a step toward 0.1.0's full
-//! motion-as-trait-bound generic-ification.
+//! over `&mut hjkl_buffer::Buffer`. Motions don't belong on `Buffer`
+//! — they're computed over the buffer, not delegated to it; the
+//! relocation is a step toward 0.1.0's full motion-as-trait-bound
+//! generic-ification.
 //!
 //! What stays in this module: [`is_keyword_char`] — the
 //! `iskeyword`-spec parser. Keyword classification is data over the
 //! `iskeyword` string and a single `char`; it has no buffer
 //! dependency, so the engine motions module re-exports it from here.
-//!
-//! [SPEC.md]: https://github.com/kryptic-sh/hjkl/blob/main/crates/hjkl-engine/SPEC.md
 
 /// Match `c` against a vim-style `iskeyword` spec. Tokens are
 /// comma-separated; understood forms: `@` (any alphabetic),
