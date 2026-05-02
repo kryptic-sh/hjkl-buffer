@@ -18,8 +18,8 @@ full git history.
 
 ## Status
 
-`0.3.0` — frozen public API; see [IMPLEMENTERS.md](IMPLEMENTERS.md) for the
-14-method sealed surface.
+Stable public surface. See [IMPLEMENTERS.md](IMPLEMENTERS.md) for the `Buffer`
+trait shape consumed by `hjkl-engine`.
 
 ## Features
 
