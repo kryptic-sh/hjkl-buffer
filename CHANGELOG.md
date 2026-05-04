@@ -6,6 +6,22 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.5] - 2026-05-05
+
+### Docs
+
+- Inlined former `IMPLEMENTERS.md` invariants into rustdoc on the actual types
+  and methods (`Position`, `Edit` + variants, `Fold`, `Viewport`, `Span`,
+  `Buffer::set_cursor` / `clamp_position` / `ensure_cursor_visible`,
+  `BufferView` render module, crate-level `lib.rs`). Now renders on docs.rs next
+  to each symbol and shows up in IDE hover.
+- Removed `IMPLEMENTERS.md` (content fully relocated; README points at docs.rs).
+- Dropped stale Marks + Search sections — those APIs were removed from `Buffer`
+  at v0.0.37 (now live in the engine layer).
+- Fixed broken `MIGRATION.md` link in crate-level rustdoc (file was deleted
+  upstream pre-0.1.0).
+- Fixed three pre-existing broken intra-doc links in `render.rs`.
+
 ## [0.3.4] - 2026-05-04
 
 ### Docs
@@ -43,7 +59,8 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 - Standalone `LICENSE`, `.gitignore`, and `ci.yml` workflow at the repo root.
 
-[Unreleased]: https://github.com/kryptic-sh/hjkl-buffer/compare/v0.3.4...HEAD
+[Unreleased]: https://github.com/kryptic-sh/hjkl-buffer/compare/v0.3.5...HEAD
+[0.3.5]: https://github.com/kryptic-sh/hjkl-buffer/releases/tag/v0.3.5
 [0.3.4]: https://github.com/kryptic-sh/hjkl-buffer/releases/tag/v0.3.4
 [0.3.3]: https://github.com/kryptic-sh/hjkl-buffer/releases/tag/v0.3.3
 [0.3.2]: https://github.com/kryptic-sh/hjkl-buffer/releases/tag/v0.3.2
