@@ -1,15 +1,27 @@
 //! Direct cell-write `ratatui::widgets::Widget` for [`crate::Buffer`].
 //!
-//! Replaces the tui-textarea + Paragraph render path. Writes one
-//! cell at a time so we can layer syntax span fg, cursor-line bg,
-//! cursor cell REVERSED, and selection bg in a single pass without
-//! the grapheme / wrap machinery `Paragraph` does. Per-row cache
-//! keyed on `dirty_gen + selection + cursor row + viewport top_col`
-//! makes the steady-state render essentially free.
+//! Enabled by the `ratatui` feature (off by default).
 //!
-//! Caller wraps a `&Buffer` in [`BufferView`], hands it the style
-//! table that resolves opaque [`crate::Span`] style ids to real
-//! ratatui styles, and renders into a `ratatui::Frame`.
+//! ## Render path
+//!
+//! When the `ratatui` feature is enabled, [`BufferView`] implements
+//! `ratatui::widgets::Widget`. The widget is **single-pass** — text,
+//! selection, gutter signs, and styled spans all paint together. There is
+//! no separate `Paragraph` or layout step. Writes one cell at a time so
+//! syntax span fg, cursor-line bg, cursor cell REVERSED, and selection bg
+//! layer in a single pass without the grapheme / wrap machinery `Paragraph`
+//! does.
+//!
+//! Caller wraps a `&Buffer` in [`BufferView`], hands it the style table
+//! that resolves opaque [`crate::Span`] style ids to real ratatui styles
+//! via a [`StyleResolver`], and renders into a `ratatui::Frame`.
+//!
+//! ## StyleResolver hooks
+//!
+//! The [`StyleResolver`] trait is the host's bridge from opaque `u32` style
+//! ids (stored in [`crate::Span::style`]) to real `ratatui::style::Style`
+//! values. Implement it against your own theme. A convenience blanket impl
+//! exists for closures `Fn(u32) -> Style`.
 
 use ratatui::buffer::Buffer as TermBuffer;
 use ratatui::layout::Rect;
@@ -38,11 +50,11 @@ impl<F: Fn(u32) -> Style> StyleResolver for F {
 /// [`Selection`] + a [`StyleResolver`]. Created per draw, dropped
 /// when the frame is done — cheap, holds only refs.
 ///
-/// 0.0.34 (Patch C-δ.1): added the [`viewport`] field. The viewport
+/// 0.0.34 (Patch C-δ.1): added the `viewport` field. The viewport
 /// previously lived on the buffer itself; with the relocation to the
 /// engine `Host`, the renderer takes a borrow per draw.
 ///
-/// 0.0.37: added the [`spans`] and [`search_pattern`] fields. Per-row
+/// 0.0.37: added the `spans` and `search_pattern` fields. Per-row
 /// syntax spans + the active `/` regex used to live on the buffer
 /// (`Buffer::spans` / `Buffer::search_pattern`); both moved out per
 /// step 3 of `DESIGN_33_METHOD_CLASSIFICATION.md`. The host now feeds

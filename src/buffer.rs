@@ -94,6 +94,16 @@ impl Buffer {
     /// [`Buffer::ensure_cursor_visible`] when they want viewport
     /// follow. Clamps `row` and `col` to valid positions so motion
     /// helpers don't have to repeat the bound check.
+    ///
+    /// Out-of-bounds [`Position`] values are silently clamped: an
+    /// out-of-range `row` is pulled to the last row; an out-of-range
+    /// `col` is pulled to the row's char count (one past the last char —
+    /// the insert-mode boundary). See [`Position`] for the full bounds
+    /// contract.
+    ///
+    /// The optional sticky column for `j`/`k` motions is **not** reset by
+    /// this call — it survives `set_cursor` intentionally. Only motion code
+    /// should clear it.
     pub fn set_cursor(&mut self, pos: Position) {
         let last_row = self.lines.len().saturating_sub(1);
         let row = pos.row.min(last_row);
@@ -102,11 +112,17 @@ impl Buffer {
         self.cursor = Position::new(row, col);
     }
 
-    /// Bring the cursor into the visible viewport, scrolling by the
+    /// Bring the cursor into the visible [`Viewport`], scrolling by the
     /// minimum amount needed. When `viewport.wrap != Wrap::None` and
     /// `viewport.text_width > 0`, scrolling is screen-line aware:
     /// `top_row` is advanced one visible doc row at a time until the
     /// cursor's screen row falls inside the viewport's height.
+    ///
+    /// The [`Viewport`] is an **input** written by the host per render
+    /// frame, not a value derived from the buffer. The host is responsible
+    /// for setting `top_row`, `top_col`, `width`, `height`, `wrap`, and
+    /// `text_width` before calling this method. See [`Viewport`] for the
+    /// full field contract.
     ///
     /// 0.0.34 (Patch C-δ.1): the viewport is no longer a buffer field;
     /// callers thread a `&mut Viewport` (typically owned by the engine
@@ -251,6 +267,11 @@ impl Buffer {
     /// Clamp `pos` to the buffer's content. Out-of-range row gets
     /// pulled to the last row; out-of-range col gets pulled to the
     /// row's char count (one past last char — insertion point).
+    ///
+    /// Used internally by [`Buffer::set_cursor`] and
+    /// [`Buffer::apply_edit`]. Callers can also use it to sanitize a
+    /// [`Position`] derived from external input before handing it to the
+    /// buffer. See [`Position`] for the valid-bounds definition.
     pub fn clamp_position(&self, pos: Position) -> Position {
         let last_row = self.lines.len().saturating_sub(1);
         let row = pos.row.min(last_row);

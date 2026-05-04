@@ -1,12 +1,34 @@
 /// A `(row, col)` location inside a [`crate::Buffer`].
 ///
-/// `col` is a **char index** along the row's line, not a byte offset.
-/// That's how vim users think about cursor positions ("column 4" =
-/// the 4th character) and it sidesteps the off-by-one bugs that come
-/// from mixing byte and char indices when the buffer holds
-/// non-ASCII text. The accompanying [`Position::byte_offset`] helper
-/// converts back to a byte offset when slicing the underlying
-/// `String`.
+/// - `row` is zero-based, in **logical lines** (newline-separated). Wrapping
+///   is a render-only concern; no `Position` ever points at a display line.
+/// - `col` is zero-based, **char index within the line** — not bytes, not
+///   graphemes, not display columns. Width-aware motions go through helpers in
+///   `motion.rs`; do not synthesize `Position` from a column count without
+///   consulting them. The accompanying [`Position::byte_offset`] helper
+///   converts a char-index `col` back to a byte offset when slicing the
+///   underlying `String`.
+///
+/// ## Bounds
+///
+/// A `Position` is **valid** for a buffer iff:
+///
+/// - `row < buffer.lines().len()`
+/// - `col <= buffer.line(row).unwrap().chars().count()` (one past the last
+///   char is allowed — insert mode lives there).
+///
+/// Pass an out-of-bounds `Position` to [`crate::Buffer::set_cursor`] and the
+/// buffer clamps to the nearest valid one via
+/// [`crate::Buffer::clamp_position`]. Pass one to
+/// [`crate::Buffer::apply_edit`] and the edit is rejected (returns the no-op
+/// inverse).
+///
+/// ## Sticky column
+///
+/// [`crate::Buffer`] tracks an optional sticky column for `j` / `k` motions:
+/// the target column to land in once the cursor reaches a line long enough to
+/// honor it. Never reset it manually outside motion code — it survives
+/// [`crate::Buffer::set_cursor`] for that exact reason.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Position {
     pub row: usize,

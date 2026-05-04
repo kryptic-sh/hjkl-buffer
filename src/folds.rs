@@ -4,7 +4,30 @@
 //! Phase 9 of the migration plan unlocks this — vim users get
 //! `zo`/`zc`/`za`/`zR`/`zM` over the same buffer the editor is
 //! mutating, no separate fold tracker required.
+//!
+//! ## Fold semantics
+//!
+//! Folds are **row-range** spans, not byte spans. [`Fold`] covers
+//! `[start_row, end_row]` inclusive. The host renders folds as collapsed
+//! single-line stubs; the buffer never elides them on its own —
+//! [`crate::Buffer::lines`] always returns the underlying logical text.
+//!
+//! Add / remove / toggle goes through
+//! [`crate::Buffer::add_fold`] / [`crate::Buffer::remove_fold_at`] /
+//! [`crate::Buffer::toggle_fold_at`]. Open-all / close-all (`zR` / `zM`)
+//! go through [`crate::Buffer::open_all_folds`] /
+//! [`crate::Buffer::close_all_folds`]; folds keep their definitions across
+//! open/close cycles.
 
+/// A contiguous range of rows that the host can collapse to a single
+/// fold-marker line.
+///
+/// Folds are row-range spans: `[start_row, end_row]` inclusive. The buffer
+/// never elides content — [`crate::Buffer::lines`] always returns the full
+/// logical text regardless of fold state. It is the host's render path that
+/// skips hidden rows and replaces them with a stub.
+///
+/// See the `folds` module documentation for the full invariant description.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Fold {
     /// First row of the folded range (visible when closed).

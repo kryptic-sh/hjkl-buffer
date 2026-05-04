@@ -23,14 +23,41 @@ pub enum MotionKind {
 
 /// One unit of buffer mutation. Constructed by the caller (vim
 /// engine, ex command, …) and handed to [`Buffer::apply_edit`].
+///
+/// ## Invariants
+///
+/// All `Position` arguments must satisfy the bounds documented on
+/// [`Position`] before the edit is applied. Out-of-bounds positions
+/// are clamped by [`Buffer::clamp_position`] inside
+/// [`Buffer::apply_edit`]; if the clamped form changes the edit's
+/// meaning the result is implementation-defined.
+///
+/// See [`Buffer::apply_edit`] for post-conditions that hold after
+/// every variant.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Edit {
     /// Insert one char at `at`. Cursor lands one position past it.
+    ///
+    /// `at` must be a valid [`Position`]. `ch` must be a single Unicode
+    /// scalar. Multi-grapheme content must use [`Edit::InsertStr`].
     InsertChar { at: Position, ch: char },
     /// Insert `text` (possibly multi-line) at `at`. Cursor lands at
     /// the end of the inserted content.
+    ///
+    /// `at` must be a valid [`Position`]. `text` may contain `\n` — the
+    /// buffer splits on newline. CR (`\r`) is preserved as-is; the host
+    /// is responsible for CRLF normalization before insert.
     InsertStr { at: Position, text: String },
     /// Delete `[start, end)` with the given kind.
+    ///
+    /// `start <= end` in document order. [`MotionKind`] controls whether
+    /// trailing newlines are consumed:
+    ///
+    /// - [`MotionKind::Char`][]: byte-precise; preserves enclosing newlines.
+    /// - [`MotionKind::Line`][]: whole rows from `start.row..=end.row`;
+    ///   endpoint columns are ignored.
+    /// - [`MotionKind::Block`][]: rectangle
+    ///   `[start.row..=end.row] × [min_col..=max_col]`.
     DeleteRange {
         start: Position,
         end: Position,
@@ -38,6 +65,8 @@ pub enum Edit {
     },
     /// `J` (`with_space = true`) / `gJ` (`false`) — fold `count` rows
     /// after `row` into `row`.
+    ///
+    /// `row + count - 1` must be a valid row. `count >= 1`.
     JoinLines {
         row: usize,
         count: usize,
@@ -52,6 +81,10 @@ pub enum Edit {
         inserted_space: bool,
     },
     /// Replace `[start, end)` with `with` (charwise, may span rows).
+    ///
+    /// Same constraints as [`Edit::DeleteRange`] with
+    /// [`MotionKind::Char`] for the deleted range, plus the insert
+    /// constraints from [`Edit::InsertStr`] for `with`.
     Replace {
         start: Position,
         end: Position,
@@ -70,7 +103,22 @@ pub enum Edit {
 
 impl Buffer {
     /// Apply `edit` and return the inverse. Pushing the inverse back
-    /// through [`Buffer::apply_edit`] restores the previous state.
+    /// through `apply_edit` restores the previous state, making it the
+    /// single hook for undo-stack integration.
+    ///
+    /// `apply_edit` is the **only** way to mutate buffer text.
+    ///
+    /// ## Post-conditions
+    ///
+    /// After any [`Edit`] variant:
+    ///
+    /// - [`Buffer::dirty_gen`] is incremented exactly once.
+    /// - The cursor is repositioned to a sensible place for the edit kind
+    ///   (insert lands past the inserted content; delete lands at the
+    ///   start). Callers that need to override the new cursor must call
+    ///   [`Buffer::set_cursor`] immediately after.
+    /// - All [`Position`] values the caller held from before the edit may
+    ///   be invalid. Re-derive from row / col deltas; do not cache.
     pub fn apply_edit(&mut self, edit: Edit) -> Edit {
         match edit {
             Edit::InsertChar { at, ch } => self.do_insert_str(at, ch.to_string()),

@@ -1,15 +1,17 @@
 /// One styled byte range on a buffer row.
 ///
-/// The buffer holds these per row (`Vec<Vec<Span>>`) so the render
-/// path doesn't have to re-tokenise each frame. `style` is opaque to
-/// the buffer — sqeel-vim layers tree-sitter and LSP diagnostic
-/// styling on top, then hands the merged spans back via
-/// [`Buffer::set_spans`]. The render layer turns it into a real
-/// `ratatui::style::Style` at draw time.
+/// Style spans are opaque-id tuples. The buffer does not own colors. The
+/// host (engine layer or terminal frontend) keeps the table mapping
+/// `style: u32` to a renderable type.
 ///
-/// Byte ranges are half-open: `[start_byte, end_byte)`. They line up
+/// Byte ranges are **half-open**: `[start_byte, end_byte)`. They line up
 /// with the row's `String` so callers can slice without re-deriving
 /// indices.
+///
+/// The host installs spans via the engine's `Editor::install_syntax_spans`
+/// (or equivalent) after each edit. Spans are cleared for affected rows on
+/// every [`crate::Buffer::apply_edit`] call and must be re-installed by the
+/// host's syntax pipeline.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Span {
     pub start_byte: usize,

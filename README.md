@@ -18,8 +18,8 @@ full git history.
 
 ## Status
 
-Stable public surface. See [IMPLEMENTERS.md](IMPLEMENTERS.md) for the `Buffer`
-trait shape consumed by `hjkl-engine`.
+Stable public surface. See [docs.rs/hjkl-buffer](https://docs.rs/hjkl-buffer)
+for the `Buffer` API invariants and implementer contract.
 
 ## Features
 

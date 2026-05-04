@@ -2,16 +2,27 @@ use crate::{Position, Wrap};
 
 /// Where the buffer is scrolled to and how big the visible area is.
 ///
-/// Mirrors what tui-textarea exposed today: the host publishes
-/// `(width, height)` from the render path each frame, and the buffer
-/// uses the cached values to clamp the cursor / scroll offsets when
-/// motions ask for it. `top_row` and `top_col` are the first visible
-/// row / column; `top_col` is a char index, matching [`Position`].
+/// `Viewport` is an **input** to [`crate::Buffer::ensure_cursor_visible`],
+/// not a derived value. The host writes `top_row`, `top_col`, `width`, and
+/// `height` per render frame; the buffer clamps the cursor inside the
+/// declared area.
 ///
-/// `wrap` and `text_width` together drive soft-wrap-aware scrolling
-/// and motion. `text_width` is the cell width of the text area
-/// (i.e. `width` minus any gutter the host renders) so the buffer
-/// can compute screen-line splits without duplicating gutter logic.
+/// `top_row` and `top_col` are the first visible row / column; `top_col` is
+/// a char index, matching [`Position`].
+///
+/// `wrap` and `text_width` together drive soft-wrap-aware scrolling and
+/// motion. `text_width` is the cell width of the text area (i.e. `width`
+/// minus any gutter the host renders) so the buffer can compute screen-line
+/// splits without duplicating gutter logic.
+///
+/// `scroll_off` is not a field on `Viewport` itself; the host computes it
+/// and adjusts `top_row` before handing the viewport to
+/// [`crate::Buffer::ensure_cursor_visible`].
+///
+/// [`Wrap::None`] / [`crate::Wrap::Char`] / [`crate::Wrap::Word`] change
+/// which screen-row arithmetic the buffer uses. Switching mid-session is
+/// supported but the host must call
+/// [`crate::Buffer::ensure_cursor_visible`] afterwards.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Viewport {
     pub top_row: usize,
